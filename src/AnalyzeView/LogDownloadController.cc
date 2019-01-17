@@ -271,7 +271,9 @@ LogDownloadController::_findMissingEntries()
     //-- Is there something missing?
     if(start >= 0) {
         //-- Have we tried too many times?
-        if(_retries++ > 2) {
+        // FT0XX/FIXED BY ZSY/20190117/LOG DOWNLOAD BUGFIX
+        if(_retries++ > 20) {
+        // FT0XX/CLOSE BY ZSY/20190117/LOG DOWNLOAD BUGFIX
             for(int i = 0; i < num_logs; i++) {
                 QGCLogEntry* entry = _logEntriesModel[i];
                 if(entry && !entry->received()) {
@@ -426,7 +428,9 @@ LogDownloadController::_findMissingData()
         _downloadData->advanceChunk();
     }
 
-    if(_retries++ > 2) {
+    // FT0XX/FIXED BY ZSY/20190117/LOG DOWNLOAD BUGFIX
+    if(_retries++ > 20) {
+    // FT0XX/CLOSE BY ZSY/20190117/LOG DOWNLOAD BUGFIX
         _downloadData->entry->setStatus(QString(tr("Timed Out")));
         //-- Give up
         qWarning() << "Too many errors retreiving log data. Giving up.";

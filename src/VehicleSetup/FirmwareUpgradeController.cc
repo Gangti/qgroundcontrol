@@ -568,10 +568,12 @@ void FirmwareUpgradeController::_getFirmwareFile(FirmwareIdentifier firmwareId)
     }
     
     if (firmwareId.firmwareType == CustomFirmware) {
+        // FT067/FIXED BY ZSY/20180323/FIRMWARE POWERED BY ZSY
         _firmwareFilename = QGCQFileDialog::getOpenFileName(nullptr,                                                                // Parent to main window
                                                             tr("Select Firmware File"),                                             // Dialog Caption
                                                             QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation),    // Initial directory
-                                                            tr("Firmware Files (*.px4 *.bin *.ihx)"));                              // File filter
+                                                            tr("Firmware Files (*.r2 *.bin)"));                                     // File filter
+        // FT067/CLOSE BY ZSY/20180323/FIRMWARE POWERED BY ZSY
     } else {
         if (prgFirmware->contains(firmwareId)) {
             _firmwareFilename = prgFirmware->value(firmwareId);

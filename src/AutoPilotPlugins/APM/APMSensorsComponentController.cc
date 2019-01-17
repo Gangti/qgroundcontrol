@@ -281,6 +281,15 @@ void APMSensorsComponentController::_mavCommandResult(int vehicleId, int compone
 
 void APMSensorsComponentController::calibrateCompass(void)
 {
+    // FT0XX/FIXED BY ZSY/20191117/COMPASS CALIBRATION BUG FIX
+    if ( (getParameterFact(FactSystem::defaultComponentId, QStringLiteral("COMPASS_DEV_ID") )->rawValue().toInt() == 0 || !getParameterFact(FactSystem::defaultComponentId, QStringLiteral("COMPASS_USE") )->rawValue().toBool())
+      && (getParameterFact(FactSystem::defaultComponentId, QStringLiteral("COMPASS_DEV_ID2"))->rawValue().toInt() == 0 || !getParameterFact(FactSystem::defaultComponentId, QStringLiteral("COMPASS_USE2"))->rawValue().toBool())
+      && (getParameterFact(FactSystem::defaultComponentId, QStringLiteral("COMPASS_DEV_ID3"))->rawValue().toInt() == 0 || !getParameterFact(FactSystem::defaultComponentId, QStringLiteral("COMPASS_USE3"))->rawValue().toBool())) {
+        // qgcApp()->showMessage(QStringLiteral("No compass enabled!"));
+        return;
+    }
+    // FT0XX/CLOSE BY ZSY/20191117/COMPASS CALIBRATION BUG FIX
+
     // First we need to determine if the vehicle support onboard compass cal. There isn't an easy way to
     // do this. A hack is to send the mag cancel command and see if it is accepted.
     connect(_vehicle, &Vehicle::mavCommandResult, this, &APMSensorsComponentController::_mavCommandResult);

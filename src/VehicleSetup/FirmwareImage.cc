@@ -36,7 +36,9 @@ const char* FirmwareImage::_jsonParamXmlKey =           "parameter_xml";
 const char* FirmwareImage::_jsonAirframeXmlSizeKey =    "airframe_xml_size";
 const char* FirmwareImage::_jsonAirframeXmlKey =        "airframe_xml";
 const char* FirmwareImage::_jsonImageSizeKey =          "image_size";
-const char* FirmwareImage::_jsonImageKey =              "image";
+// FT067/FIXED BY ZSY/20180323/FIRMWARE POWERED BY ZSY
+const char* FirmwareImage::_jsonImageKey =              "image_file";
+// FT067/CLOSE BY ZSY/20180323/FIRMWARE POWERED BY ZSY
 const char* FirmwareImage::_jsonMavAutopilotKey =       "mav_autopilot";
 
 FirmwareImage::FirmwareImage(QObject* parent) :
@@ -51,22 +53,18 @@ bool FirmwareImage::load(const QString& imageFilename, uint32_t boardId)
     _imageSize = 0;
     _boardId = boardId;
     
-    if (imageFilename.endsWith(".bin")) {
+    // FT067/FIXED BY ZSY/20180323/FIRMWARE POWERED BY ZSY
+    if (imageFilename.endsWith(".r2")) {
+        _binFormat = true;
+        return _r2Load(imageFilename);
+    } else if (imageFilename.endsWith(".bin")) {
         _binFormat = true;
         return _binLoad(imageFilename);
-    } else if (imageFilename.endsWith(".px4")) {
-        _binFormat = true;
-        return _px4Load(imageFilename);
-    } else if (imageFilename.endsWith(".apj")) {
-        _binFormat = true;
-        return _px4Load(imageFilename);
-    } else if (imageFilename.endsWith(".ihx")) {
-        _binFormat = false;
-        return _ihxLoad(imageFilename);
     } else {
         emit statusMessage("Unsupported file format");
         return false;
     }
+    // FT067/CLOSE BY ZSY/20180323/FIRMWARE POWERED BY ZSY
 }
 
 bool FirmwareImage::_readByteFromStream(QTextStream& stream, uint8_t& byte)
@@ -214,6 +212,102 @@ bool FirmwareImage::isCompatible(uint32_t boardId, uint32_t firmwareId) {
     }
     return result;
 }
+
+// FT067/FIXED BY ZSY/20180323/FIRMWARE POWERED BY ZSY
+bool FirmwareImage::_r2Load(const QString& imageFilename)
+{
+    _imageSize = 0;
+
+    // We need to collect information from the .r2 file as well as pull the binary image out to a separate file.
+
+    QFile r2File(imageFilename);
+    if (!r2File.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        emit statusMessage(QString("Unable to open firmware file %1, error: %2").arg(imageFilename).arg(r2File.errorString()));
+        return false;
+    }
+
+    QByteArray bytes = r2File.readAll();
+    r2File.close();
+    QJsonDocument doc = QJsonDocument::fromJson(bytes);
+
+    if (doc.isNull()) {
+        emit statusMessage("Supplied file is not a valid JSON document");
+        return false;
+    }
+
+    QJsonObject r2Json = doc.object();
+
+    // Make sure the keys we need are available
+    QString errorString;
+    QStringList requiredKeys;
+    requiredKeys << _jsonBoardIdKey << _jsonImageKey << _jsonImageSizeKey;
+    if (!JsonHelper::validateRequiredKeys(r2Json, requiredKeys, errorString)) {
+        emit statusMessage(QString("Firmware file mission required key: %1").arg(errorString));
+        return false;
+    }
+
+    // Make sure the keys are the correct type
+    QStringList keys;
+    QList<QJsonValue::Type> types;
+    keys << _jsonBoardIdKey << _jsonImageSizeKey << _jsonImageKey ;
+    types << QJsonValue::Double << QJsonValue::Double << QJsonValue::String;
+    if (!JsonHelper::validateKeyTypes(r2Json, keys, types, errorString)) {
+        emit statusMessage(QString("Firmware file has invalid key: %1").arg(errorString));
+        return false;
+    }
+
+    uint32_t firmwareBoardId = (uint32_t)r2Json.value(_jsonBoardIdKey).toInt();
+    uint32_t actualBoardId = _boardId == Bootloader::boardIDPX4FMUV3 ? Bootloader::boardIDPX4FMUV2 : _boardId;;
+    if (firmwareBoardId != actualBoardId) {
+        emit statusMessage(QString("Downloaded firmware board id does not match hardware board id: %1 != %2").arg(firmwareBoardId).arg(_boardId));
+        return false;
+    }
+
+    // What firmware type is this?
+    MAV_AUTOPILOT firmwareType = (MAV_AUTOPILOT)r2Json[_jsonMavAutopilotKey].toInt(MAV_AUTOPILOT_PX4);
+    emit statusMessage(QString("MAV_AUTOPILOT = %1").arg(firmwareType));
+
+    // Decompress the parameter xml and save to file
+    QByteArray decompressedBytes;
+
+    // Decompress the image and save to file
+    _imageSize = r2Json.value(QString("image_size")).toInt();
+    bool success = _decompressJsonValue(r2Json,               // JSON object
+                                   bytes,                 // Raw bytes of JSON document
+                                   _jsonImageSizeKey,     // key which holds byte size
+                                   _jsonImageKey,         // key which holds compressed bytes
+                                   decompressedBytes);    // Returned decompressed bytes
+    if (!success) {
+        return false;
+    }
+
+    // Pad image to 4-byte boundary
+    while ((decompressedBytes.count() % 4) != 0) {
+        decompressedBytes.append(static_cast<char>(static_cast<unsigned char>(0xFF)));
+    }
+
+    // Store decompressed image file in same location as original download file
+    QDir imageDir = QFileInfo(imageFilename).dir();
+    QString decompressFilename = imageDir.filePath("r2FlashUpgrade.bin");
+
+    QFile decompressFile(decompressFilename);
+    if (!decompressFile.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        emit statusMessage(QString("Unable to open decompressed file %1 for writing, error: %2").arg(decompressFilename).arg(decompressFile.errorString()));
+        return false;
+    }
+
+    qint64 bytesWritten = decompressFile.write(decompressedBytes);
+    if (bytesWritten != decompressedBytes.count()) {
+        emit statusMessage(QString("Write failed for decompressed image file, error: %1").arg(decompressFile.errorString()));
+        return false;
+    }
+    decompressFile.close();
+
+    _binFilename = decompressFilename;
+
+    return true;
+}
+// FT067/CLOSE BY ZSY/20180323/FIRMWARE POWERED BY ZSY
 
 bool FirmwareImage::_px4Load(const QString& imageFilename)
 {

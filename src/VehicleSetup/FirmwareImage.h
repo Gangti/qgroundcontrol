@@ -67,7 +67,10 @@ private:
     bool _binLoad(const QString& px4Filename);
     bool _px4Load(const QString& px4Filename);
     bool _ihxLoad(const QString& ihxFilename);
-    
+    // FT067/FIXED BY ZSY/20180323/FIRMWARE POWERED BY ZSY
+    bool _r2Load (const QString& r2Filename);
+    // FT067/CLOSE BY ZSY/20180323/FIRMWARE POWERED BY ZSY
+
     bool _readByteFromStream(QTextStream& stream, uint8_t& byte);
     bool _readWordFromStream(QTextStream& stream, uint16_t& word);
     bool _readBytesFromStream(QTextStream& stream, uint8_t byteCount, QByteArray& bytes);

@@ -103,25 +103,26 @@ private:
     bool _ihxVerifyBytes(QSerialPort* port, const FirmwareImage* image);
     bool _verifyCRC(QSerialPort* port);
 
+    // FT045/FIXED BY ZSY/20170907/BOOTLOADER CUSTOMIZATION
     enum {
         // protocol bytes
-        PROTO_INSYNC =          0x12,   ///< 'in sync' byte sent before status
-        PROTO_BAD_SILICON_REV = 0x14,   ///< device is using silicon not suitable for the target the bootloader was used for
-        PROTO_EOC =             0x20,   ///< end of command
+        PROTO_INSYNC =          0x62,   ///< 'in sync' byte sent before status
+        PROTO_BAD_SILICON_REV = 0x64,   ///< device is using silicon not suitable for the target the bootloader was used for
+        PROTO_EOC =             0x70,   ///< end of command
         
         // Reply bytes
-        PROTO_OK =              0x10,   ///< INSYNC/OK      - 'ok' response
-        PROTO_FAILED =          0x11,   ///< INSYNC/FAILED  - 'fail' response
-        PROTO_INVALID =         0x13,	///< INSYNC/INVALID - 'invalid' response for bad commands
+        PROTO_OK =              0x60,   ///< INSYNC/OK      - 'ok' response
+        PROTO_FAILED =          0x61,   ///< INSYNC/FAILED  - 'fail' response
+        PROTO_INVALID =         0x63,	///< INSYNC/INVALID - 'invalid' response for bad commands
         
         // Command bytes
-        PROTO_GET_SYNC =        0x21,   ///< NOP for re-establishing sync
-        PROTO_GET_DEVICE =      0x22,   ///< get device ID bytes
-        PROTO_CHIP_ERASE =      0x23,   ///< erase program area and reset program address
+        PROTO_GET_SYNC =        0x71,   ///< NOP for re-establishing sync
+        PROTO_GET_DEVICE =      0x72,   ///< get device ID bytes
+        PROTO_CHIP_ERASE =      0x73,   ///< erase program area and reset program address
         PROTO_LOAD_ADDRESS =    0x24,	///< set next programming address
-        PROTO_PROG_MULTI =      0x27,   ///< write bytes at program address and increment
-        PROTO_GET_CRC =         0x29,	///< compute & return a CRC
-        PROTO_BOOT =            0x30,   ///< boot the application
+        PROTO_PROG_MULTI =      0x77,   ///< write bytes at program address and increment
+        PROTO_GET_CRC =         0x79,	///< compute & return a CRC
+        PROTO_BOOT =            0x80,   ///< boot the application
         
         // Command bytes - Rev 2 boootloader only
         PROTO_CHIP_VERIFY	=   0x24, ///< begin verify mode
@@ -129,7 +130,7 @@ private:
         
         INFO_BL_REV         =   1,    ///< bootloader protocol revision
         BL_REV_MIN          =   2,    ///< Minimum supported bootlader protocol
-        BL_REV_MAX			=   5,    ///< Maximum supported bootloader protocol
+        BL_REV_MAX			=   6,    ///< Maximum supported bootloader protocol
         INFO_BOARD_ID		=   2,    ///< board type
         INFO_BOARD_REV		=   3,    ///< board revision
         INFO_FLASH_SIZE		=   4,    ///< max firmware size in bytes
@@ -137,6 +138,7 @@ private:
         PROG_MULTI_MAX		=   64,     ///< write size for PROTO_PROG_MULTI, must be multiple of 4
         READ_MULTI_MAX		=   0x28    ///< read size for PROTO_READ_MULTI, must be multiple of 4. Sik Radio max size is 0x28
     };
+    // FT045/CLOSE BY ZSY/20170907/BOOTLOADER CUSTOMIZATION
     
     uint32_t    _boardID;           ///< board id for currently connected board
     uint32_t    _boardFlashSize;    ///< flash size for currently connected board

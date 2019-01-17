@@ -66,10 +66,14 @@ bool APMRadioComponent::setupComplete(void) const
     // Next check RC#_MIN/MAX/TRIM all at defaults
     foreach (const QString& mapParam, _mapParams) {
         int channel = _vehicle->parameterManager()->getParameter(-1, mapParam)->rawValue().toInt();
-        if (_vehicle->parameterManager()->getParameter(-1, QStringLiteral("RC%1_MIN").arg(channel))->rawValue().toInt() != 1100) {
+        // FT062/FIXED BY ZSY/2018019/RC XXX NOT CONFIGURED BUG FIX
+        if (_vehicle->parameterManager()->getParameter(-1, QStringLiteral("RC%1_MIN").arg(channel))->rawValue().toInt() != 1301) {
+        // FT062/CLOSE BY ZSY/2018019/RC XXX NOT CONFIGURED BUG FIX
             return true;
         }
-        if (_vehicle->parameterManager()->getParameter(-1, QStringLiteral("RC%1_MAX").arg(channel))->rawValue().toInt() != 1900) {
+        // FT062/FIXED BY ZSY/2018019/RC XXX NOT CONFIGURED BUG FIX
+        if (_vehicle->parameterManager()->getParameter(-1, QStringLiteral("RC%1_MAX").arg(channel))->rawValue().toInt() != 1699) {
+        // FT062/CLOSE BY ZSY/2018019/RC XXX NOT CONFIGURED BUG FIX
             return true;
         }
         if (_vehicle->parameterManager()->getParameter(-1, QStringLiteral("RC%1_TRIM").arg(channel))->rawValue().toInt() != 1500) {

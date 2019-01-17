@@ -349,7 +349,9 @@ QString Fact::_variantToString(const QVariant& variant, int decimalPlaces) const
 
 QString Fact::rawValueStringFullPrecision(void) const
 {
-    return _variantToString(rawValue(), 18);
+    // FT0XX/FIXED BY ZSY/20190117/PARAMETERS EXPORT BUG FIX
+    return _variantToString(rawValue(), decimalPlaces()/*18*/);
+    // FT0XX/CLOSE BY ZSY/20190117/PARAMETERS EXPORT BUG FIX
 }
 
 
