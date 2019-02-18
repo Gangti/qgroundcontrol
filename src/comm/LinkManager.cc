@@ -589,7 +589,9 @@ void LinkManager::_updateAutoConnectLinks(void)
                 }
                 if (pSerialConfig) {
                     qCDebug(LinkManagerLog) << "New auto-connect port added: " << pSerialConfig->name() << portInfo.systemLocation();
-                    pSerialConfig->setBaud(boardType == QGCSerialPortInfo::BoardTypeSiKRadio ? 57600 : 115200);
+                    // FT0XX/FIXED BY ZSY/20190215/Telemetry baud rate changed from 57600 to 115200
+                    pSerialConfig->setBaud(boardType == QGCSerialPortInfo::BoardTypeSiKRadio ? 115200 : 115200);
+                    // FT0XX/CLOSE BY ZSY/20190215/Telemetry baud rate changed from 57600 to 115200
                     pSerialConfig->setDynamic(true);
                     pSerialConfig->setPortName(portInfo.systemLocation());
                     _sharedAutoconnectConfigurations.append(SharedLinkConfigurationPointer(pSerialConfig));

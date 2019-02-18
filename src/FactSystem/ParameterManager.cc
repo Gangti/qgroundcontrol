@@ -951,7 +951,9 @@ void ParameterManager::writeParametersToStream(QTextStream &stream)
            << _vehicle->firmwareMinorVersion() << "."
            << _vehicle->firmwarePatchVersion() << " "
            << _vehicle->firmwareVersionTypeString() << "\n";
-    stream << "# Git Revision: " << _vehicle->gitHash() << "\n";
+    // FT0XX/FIXED BY ZSY/20190128/Remove 0x00 in exported params file
+    // stream << "# Git Revision: " << _vehicle->gitHash() << "\n";
+    // FT0XX/CLOSE BY ZSY/20190128/Remove 0x00 in exported params file
 
     stream << "#\n";
     stream << "# Vehicle-Id Component-Id Name Value Type\n";
